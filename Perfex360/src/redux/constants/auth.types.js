@@ -1,0 +1,6 @@
+export default {
+    LOGIN_USER: 'LOGIN_USER',
+    LOGIN_SUCCESS: 'LOGIN_SUCCESS',
+    LOGIN_ERROR: 'LOGIN_ERROR',
+    LOGOUT: 'LOGOUT',
+}

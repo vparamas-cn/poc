@@ -1,0 +1,62 @@
+{
+  "name": "Perfex360",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "android": "react-native run-android",
+    "ios": "react-native run-ios",
+    "start": "react-native start",
+    "test": "jest",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@react-native-community/async-storage": "^1.12.1",
+    "@react-native-community/datetimepicker": "^3.0.4",
+    "@react-native-community/masked-view": "^0.1.10",
+    "@react-native-community/picker": "^1.8.1",
+    "@react-navigation/bottom-tabs": "^5.3.4",
+    "@react-navigation/material-top-tabs": "^5.2.12",
+    "@react-navigation/native": "^5.8.1",
+    "@react-navigation/stack": "^5.11.0",
+    "@unimodules/core": "^5.5.1",
+    "@unimodules/react-native-adapter": "^5.6.0",
+    "axios": "^0.21.0",
+    "form-data": "^3.0.0",
+    "moment": "^2.29.1",
+    "react": "16.13.1",
+    "react-native": "0.63.3",
+    "react-native-exit-app": "^1.1.0",
+    "react-native-gesture-handler": "^1.6.1",
+    "react-native-image-picker": "^2.3.4",
+    "react-native-joi": "0.0.5",
+    "react-native-linear-gradient": "^2.5.6",
+    "react-native-material-textfield": "^0.16.1",
+    "react-native-permissions": "^2.2.2",
+    "react-native-picker-select": "^7.0.0",
+    "react-native-reanimated": "^1.8.0",
+    "react-native-responsive-fontsize": "^0.4.3",
+    "react-native-responsive-screen": "^1.4.1",
+    "react-native-safe-area-context": "^0.7.3",
+    "react-native-screens": "^2.7.0",
+    "react-native-status-bar-height": "^2.5.0",
+    "react-navigation": "^4.4.3",
+    "react-redux": "^7.2.2",
+    "redux": "^4.0.5",
+    "redux-persist": "^6.0.0",
+    "redux-persist-transform-filter": "0.0.20",
+    "redux-saga": "^1.1.3"
+  },
+  "devDependencies": {
+    "@babel/core": "7.12.3",
+    "@babel/runtime": "7.12.1",
+    "@react-native-community/eslint-config": "1.1.0",
+    "babel-jest": "25.5.1",
+    "eslint": "6.8.0",
+    "jest": "25.5.4",
+    "metro-react-native-babel-preset": "0.59.0",
+    "react-test-renderer": "16.13.1"
+  },
+  "jest": {
+    "preset": "react-native"
+  }
+}
