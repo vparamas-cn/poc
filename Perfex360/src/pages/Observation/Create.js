@@ -27,7 +27,8 @@ const options = {
 
 const CreateObservation = props => {
   const [add, setaddd] = useState(0);
-  const [spinner, setspinner] = useState(false)
+  const [spinner, setspinner] = useState(false);
+  const [imgloader, setimgloader] = useState(false);
   const [data, setData] = useState({
     employee_name: props.user.user_name,
     observation_date: new Date(),
@@ -73,28 +74,32 @@ const CreateObservation = props => {
         console.log("User tapped custom button: ", response.customButton);
       } else {
         const source = { uri: response.uri };
-        if(type == "image1")
+        if(type == "image1"){
+        setimgloader("img1");
         setDataImg({ ...dataimage, image1: {
           name: response.fileName,
           type: response.type,
           uri:
             Platform.OS === "android" ? response.uri : response.uri.replace("file://", "")
         } })
-        else if(type == "image2")
+        
+        }else if(type == "image2"){
+          setimgloader("img2");
         setDataImg({ ...dataimage, image2: {
           name: response.fileName,
           type: response.type,
           uri:
             Platform.OS === "android" ? response.uri : response.uri.replace("file://", "")
         } })
-        else if(type == "image3")
+        }else if(type == "image3"){
+          setimgloader("img3");
         setDataImg({ ...dataimage, image3: {
           name: response.fileName,
           type: response.type,
           uri:
             Platform.OS === "android" ? response.uri : response.uri.replace("file://", "")
         } })
-        
+        }
       }
     });
   };
@@ -110,11 +115,28 @@ const CreateObservation = props => {
       return response;
              
   }
-  const submit =()=>{
 
+  const checkimgdescription = () => {
+    let showalert = false;
+
+    if(dataimage.image1 == undefined || dataimage.description1 == undefined || dataimage.description1 == ''){
+      showalert = true;
+    }
+    if((dataimage.image2 != undefined && (dataimage.description2 == undefined || dataimage.description2 == "")) || (dataimage.image2 == undefined && (dataimage.description2 != undefined && dataimage.description2 != "")) ){
+      showalert = true;
+    }
+    if((dataimage.image3 != undefined && (dataimage.description3 == undefined || dataimage.description3 == "")) || (dataimage.image3 == undefined && (dataimage.description3 != undefined && dataimage.description3 != ""))){
+      showalert = true;
+    }
+    return showalert;
+  }
+  const submit =()=>{
+    
     
     Joi.validate(data, schema, (err, value) => {
       if (err) return Alert.alert(err.message)
+      let showalert = checkimgdescription();
+      if (showalert) return Alert.alert("Description and Image Required");
       setspinner(true)
         value.observation_date = moment(value.observation_date).format("YYYY-MM-DD hh:mm:ss")
         axios.post(api.createobservation,value , { headers: { 'x-auth-token': props.user.token } })
@@ -160,6 +182,9 @@ const CreateObservation = props => {
     setShowDatePicker(false) 
      console.log(moment(date).format('ll'))
      setData({ ...data, observation_date: date })
+  }
+  const ProgressImage = () => {
+    console.log("ProgressImage")
   }
   return (
     <Container title={"Create Observation"}>
@@ -251,7 +276,7 @@ const CreateObservation = props => {
                 </View>:null}
                 <View style={styles.sectionbox}>
                     <Text style={styles.sectiontitle}>Observation</Text>
-                    <TextInput style={styles.textarea}
+                    <TextInput style={Platform.OS === 'ios' ? styles.textarea : styles.textareaandroid}
                     underlineColorAndroid="transparent"
                     placeholder="Observation"
                     placeholderTextColor={Theme}
@@ -263,7 +288,7 @@ const CreateObservation = props => {
                 </View>
                 <View style={styles.sectionbox}>
                     <Text style={styles.sectiontitle}>Remarks</Text>
-                    <TextInput style={styles.textarea}
+                    <TextInput style={Platform.OS === 'ios' ? styles.textarea : styles.textareaandroid}
                     underlineColorAndroid="transparent"
                     placeholder="Remarks"
                     placeholderTextColor={Theme}
@@ -275,12 +300,22 @@ const CreateObservation = props => {
                 </View>
                 <View style={styles.sectionbox}>
                     <Text style={styles.sectiontitle}>Image</Text>
-                    {!dataimage.image1?<TouchableOpacity style={styles.addimage} onPress={()=>{imagePicker("image1")}}>
+                    {!dataimage.image1 ?
+                      <TouchableOpacity style={styles.addimage} onPress={()=>{imagePicker("image1")}}>
                         <Text>Click to</Text><Text>add image</Text>
-                    </TouchableOpacity>:
-                    <View style={styles.imageholder}><View style={styles.imagecontainer}><Image style={styles.images} source={{uri:dataimage.image1.uri}}></Image></View><TouchableOpacity style={styles.remove} onPress={()=>{setDataImg({ ...dataimage, image1: undefined })}}><Text style={styles.removetxt}>Remove</Text></TouchableOpacity></View>}
+                      </TouchableOpacity>
+                    :
+                      <View style={styles.imageholder}>
+                        <View style={styles.imagecontainer}>
+                          <Image style={styles.images} source={imgloader == "img1" ? require("../../assets/icons/imgloader.png") : {uri:dataimage.image1.uri}} onLoad={() => setimgloader(false)}></Image>
+                        </View>
+                        <TouchableOpacity style={styles.remove} onPress={()=>{setDataImg({ ...dataimage, image1: undefined })}}>
+                          <Text style={styles.removetxt}>Remove</Text>
+                        </TouchableOpacity>
+                      </View>
+                    }
                     <Text style={styles.sectiontitle}>Description</Text>
-                    <TextInput style={styles.textarea}
+                    <TextInput style={Platform.OS === 'ios' ? styles.textarea : styles.textareaandroid}
                     underlineColorAndroid="transparent"
                     placeholder="Description"
                     placeholderTextColor={Theme}
@@ -293,12 +328,22 @@ const CreateObservation = props => {
                 
                 {add>=1?<View style={styles.sectionbox}>
                     <Text style={styles.sectiontitle}>Image</Text>
-                    {!dataimage.image2?<TouchableOpacity style={styles.addimage} onPress={()=>{imagePicker("image2")}}>
+                    {!dataimage.image2?
+                      <TouchableOpacity style={styles.addimage} onPress={()=>{imagePicker("image2")}}>
                         <Text>Click to</Text><Text>add image</Text>
-                    </TouchableOpacity>:
-                    <View style={styles.imageholder}><View style={styles.imagecontainer}><Image style={styles.images} source={{uri:dataimage.image2.uri}}></Image></View><TouchableOpacity style={styles.remove} onPress={()=>{setDataImg({ ...dataimage, image2: undefined })}}><Text style={styles.removetxt}>Remove</Text></TouchableOpacity></View>}
+                      </TouchableOpacity>
+                    :
+                      <View style={styles.imageholder}>
+                        <View style={styles.imagecontainer}>
+                          <Image style={styles.images} source={imgloader == "img2" ? require("../../assets/icons/imgloader.png") : {uri:dataimage.image2.uri}} onLoad={() => setimgloader(false)}></Image>
+                        </View>
+                        <TouchableOpacity style={styles.remove} onPress={()=>{setDataImg({ ...dataimage, image2: undefined })}}>
+                          <Text style={styles.removetxt}>Remove</Text>
+                        </TouchableOpacity>
+                      </View>
+                    }
                     <Text style={styles.sectiontitle}>Description</Text>
-                    <TextInput style={styles.textarea}
+                    <TextInput style={Platform.OS === 'ios' ? styles.textarea : styles.textareaandroid}
                     underlineColorAndroid="transparent"
                     placeholder="Description"
                     placeholderTextColor={Theme}
@@ -313,9 +358,9 @@ const CreateObservation = props => {
                     {!dataimage.image3?<TouchableOpacity style={styles.addimage} onPress={()=>{imagePicker("image3")}}>
                         <Text>Click to</Text><Text>add image</Text>
                     </TouchableOpacity>:
-                    <View style={styles.imageholder}><View style={styles.imagecontainer}><Image style={styles.images} source={{uri:dataimage.image3.uri}}></Image></View><TouchableOpacity style={styles.remove} onPress={()=>{setDataImg({ ...dataimage, image3: undefined })}}><Text style={styles.removetxt}>Remove</Text></TouchableOpacity></View>}
+                    <View style={styles.imageholder}><View style={styles.imagecontainer}><Image style={styles.images} source={imgloader == "img3" ? require("../../assets/icons/imgloader.png") : {uri:dataimage.image3.uri}} onLoad={() => setimgloader(false)}></Image></View><TouchableOpacity style={styles.remove} onPress={()=>{setDataImg({ ...dataimage, image3: undefined })}}><Text style={styles.removetxt}>Remove</Text></TouchableOpacity></View>}
                     <Text style={styles.sectiontitle}>Description</Text>
-                    <TextInput style={styles.textarea}
+                    <TextInput style={Platform.OS === 'ios' ? styles.textarea : styles.textareaandroid}
                     underlineColorAndroid="transparent"
                     placeholder="Description"
                     placeholderTextColor={Theme}
@@ -406,7 +451,21 @@ const styles = StyleSheet.create({
     fontSize: fontsize(1.9),
     color:"#000000",
     justifyContent:"center",
-    backgroundColor:"#ffffff"
+    backgroundColor:"#ffffff",
+  },
+  textareaandroid:{
+    width:"100%",
+    marginBottom:hp('3%'),
+    height: hp("10%"),
+    borderColor: Theme,
+    borderWidth: 1,
+    borderRadius:hp("1%"),
+    paddingLeft: wp("3%"),
+    fontSize: fontsize(1.9),
+    color:"#000000",
+    justifyContent:"center",
+    backgroundColor:"#ffffff",
+    textAlignVertical:"top",
   },
   addcontainer:{
     paddingHorizontal:wp("5%")
