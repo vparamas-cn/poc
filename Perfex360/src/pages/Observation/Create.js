@@ -521,6 +521,7 @@ const styles = StyleSheet.create({
       marginTop:10,
       marginBottom:50,
   },
+  
   datetxt: {
     fontSize: fontsize(1.9),
     color:Theme,
