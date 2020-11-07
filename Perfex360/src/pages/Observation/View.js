@@ -67,10 +67,10 @@ const ViewObservation = props => {
                   <Text style={styles.details}>{data[0].remarks}</Text>
               </View>
             </View>
-            {data.map((rec,i)=>{
+            {data && data.map((rec,i)=>{
               return(
                 <View style={styles.imageblock} key={i}>
-                  <Image style={styles.images} source={{uri:`http://192.168.1.3:49160/${rec.photo_url}`}}></Image>
+                  <Image style={styles.images} source={{uri:`http://localhost:3080/${rec.photo_url}`}}></Image>
                   <Text style={styles.details}>{rec.description}</Text>
               </View>
               )

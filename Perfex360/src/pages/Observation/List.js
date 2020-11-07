@@ -6,12 +6,15 @@ import { connect } from 'react-redux'
 import moment from 'moment'
 import { groupby } from "../../utils"
 import { fetchlist, fetchsection, fetcharea  } from '../../redux/actions/observation.actions'
+import Spinner from 'react-native-loading-spinner-overlay';
 
 const Observation = props => {
   const { navigation, observation } = props
   const [listdata, setData] = useState([]);
+  const [spinner, setspinner] = useState(false)
   const {list} = observation;
   useEffect(()=>{
+    setspinner(true);
     props.fetcharea();
     props.fetchsection();
     props.fetchlist();
@@ -20,11 +23,17 @@ const Observation = props => {
     if(list && list.length > 0){
       let result = groupby(list,"observation_id");
       result = Object.values(result);
+      result.reverse();
       setData(result);
+      setspinner(false);
+    }
+    if(list && list.length === 0){
+      setspinner(false);
     }
   },[list])
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
+      setspinner(true);
       props.fetchlist();
     });
     return unsubscribe;
@@ -32,14 +41,18 @@ const Observation = props => {
   return (
     <Container title={"Observation List"}>
       <View style={styles.container}>
-        <FlatList
+       {list && list.length === 0?
+      <View style={styles.containertxt}>
+        <Text style={styles.txt}>No data found</Text>
+    </View>
+       :<FlatList
             style={styles.list}
             keyExtractor={(item, index) => index.toString()}
             showsVerticalScrollIndicator={false}
             data={listdata}
             renderItem={({ item }) =>
                 (
-                    <TouchableOpacity style={styles.panelbox} >
+                    <View style={styles.panelbox} >
                         <View style={styles.details}>
                             <Text style={styles.sectiontitle}>Employee</Text>
                             <Text style={styles.detailsname}>{item[0].employee_name}</Text>
@@ -51,9 +64,14 @@ const Observation = props => {
                               <View style={styles.datealign}><Image style={styles.calendar} source={require("../../assets/icons/calendar.png")}></Image><Text style={styles.date}>{moment(item[0].observation_date).format("DD MMM YYYY")}</Text></View>
                               <TouchableOpacity style={styles.view} onPress={()=>{props.navigation.navigate("ViewObservation",item)}}><Text style={styles.viewtxt}>View</Text></TouchableOpacity>
                         </View>
-                    </TouchableOpacity>
+                    </View>
                 )
             }
+        />}
+        <Spinner
+          visible={spinner}
+          textContent={'Loading...'}
+          textStyle={styles.spinnerTextStyle}
         />
     
       </View>
@@ -63,6 +81,21 @@ const Observation = props => {
 const styles = StyleSheet.create({
   container:{
     flex:1,justifyContent:"flex-start",backgroundColor:Bg
+  },
+  containertxt:{
+    justifyContent:"flex-start",backgroundColor:Bg,
+    marginTop:hp("10%"),
+    justifyContent:"center",alignItems:"center"
+},
+txt: {
+  fontSize: 18,
+  textAlign: 'center',
+  margin: 10,
+  color: '#424242',
+  fontWeight: 'bold',
+},
+  spinnerTextStyle: {
+    color: '#FFF'
   },
   icon:{
     width:wp("15%"),

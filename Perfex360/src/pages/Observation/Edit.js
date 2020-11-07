@@ -145,18 +145,18 @@ const CreateObservation = props => {
               uri:
                 Platform.OS === "android" ? response.uri : response.uri.replace("file://", "")
               },
-              id2:dataval[0].observation_file_id
-          })
-        else if (type == "image3")
-          setDataImg({
-            ...dataimage, image3: {
-              name: response.fileName,
-              type: response.type,
-              uri:
-                Platform.OS === "android" ? response.uri : response.uri.replace("file://", "")
-              },
-              id3:dataval[0].observation_file_id
-          })
+              id2:dataval[1] ? dataval[1].observation_file_id:undefined
+            })
+          else if (type == "image3")
+            setDataImg({
+              ...dataimage, image3: {
+                name: response.fileName,
+                type: response.type,
+                uri:
+                  Platform.OS === "android" ? response.uri : response.uri.replace("file://", "")
+                },
+                id3:dataval[2] ? dataval[2].observation_file_id:undefined
+            })
 
       }
     });
@@ -167,45 +167,90 @@ const CreateObservation = props => {
     formData.append('file', image)
     formData.append('user_id', props.user.user_id)
     formData.append('observation_id', o_id)
+    if(o_f_id)
     formData.append('observation_file_id', o_f_id)
     formData.append('description', description)
-    let response = await axios.post(api.fileupload, formData, {
-      headers: {
-        'x-auth-token': props.user.token,
-        'Content-Type': 'multipart/form-data',
-      }
-    })
+    var config = { method: 'post', url: api.fileupload, headers: { 'x-access-token': props.user.token, 'Content-Type': 'multipart/form-data'},data : formData};
+    let response = await axios(config)
     return response;
 
+  }
+  const deletefile = async(o_f_id)=>{
+    const formData = new FormData();
+    formData.append('observation_file_id', o_f_id)
+    var config = { method: 'post', url: api.filedelete, headers: { 'x-access-token': props.user.token},data : formData};
+    let response = await axios(config)
+    return response;
+  }
+  const checkimgdescription = () => {
+    let showalert = false;
+
+    if(dataimage.image1 == undefined || dataimage.description1 == undefined || dataimage.description1 == ''){
+      showalert = true;
+    }
+    if((dataimage.image2 != undefined && (dataimage.description2 == undefined || dataimage.description2 == "")) || (dataimage.image2 == undefined && (dataimage.description2 != undefined && dataimage.description2 != "")) ){
+      showalert = true;
+    }
+    if((dataimage.image3 != undefined && (dataimage.description3 == undefined || dataimage.description3 == "")) || (dataimage.image3 == undefined && (dataimage.description3 != undefined && dataimage.description3 != ""))){
+      showalert = true;
+    }
+    return showalert;
   }
   const submit = () => {
 
 
     Joi.validate(data, schema, (err, value) => {
       if (err) return Alert.alert(err.message)
+      let showalert = checkimgdescription();
+      if (showalert) return Alert.alert("Description and Image Required");
       setspinner(true)
       value.observation_date = moment(value.observation_date).format("YYYY-MM-DD hh:mm:ss")
-      axios.post(api.createobservation, value, { headers: { 'x-auth-token': props.user.token } })
+      var config = { method: 'post', url: api.createobservation, headers: { 'x-access-token': props.user.token, 'Content-Type': 'application/json'},data : value};
+      axios(config)
         .then(async (res) => {
           let resultdata = res;
-          console.log("hvvhjcj",resultdata)
           if(resultdata.data.status === 200){
-              if(dataimage.image1){
-                let res= await uploadimage(dataimage.image1, dataimage.description1,data.observation_id,dataval[0].id1);
+            try{
+              if(dataimage.image1 && dataimage.image1.type){
+                let res= await uploadimage(dataimage.image1, dataimage.description1,data.observation_id,dataimage.id1);
               }
-              if(dataimage.image2){
-                let res= await uploadimage(dataimage.image2, dataimage.description2,data.observation_id,dataval[0].id2);
+              else{
+               
+                  if(dataval[0].photo_url !== null && !dataimage.image1){
+                    let deleteres = deletefile(dataval[0].observation_file_id)
+                  }
               }
-              if(dataimage.image3){
-                let res= await uploadimage(dataimage.image3, dataimage.description3,data.observation_id,dataval[0].id3);
+              if(dataimage.image2 && dataimage.image2.type){
+                let res= await uploadimage(dataimage.image2, dataimage.description2,data.observation_id,dataimage.id2);
+              }
+              else{
+                  if(dataval[1] && dataval[1].photo_url !== null && !dataimage.image2){
+                    let deleteres = deletefile(dataval[1].observation_file_id)
+                  }
+              }
+              if(dataimage.image3 && dataimage.image3.type){
+                let res= await uploadimage(dataimage.image3, dataimage.description3,data.observation_id,dataimage.id3);
+              }
+              else{
+                  if(dataval[2] && dataval[2].photo_url !== null && !dataimage.image3){
+                    let deleteres = deletefile(dataval[2].observation_file_id)
+                  }
               }
               setspinner(false)
-            Alert.alert("Successfully Updated!!!")
+              props.navigation.navigate("Observation");
+              Alert.alert("Successfully Updated!!!")
+            }
+            catch(er){
+              setspinner(false)
+            }
           }
           else {
             Alert.alert("Failed")
+            setspinner(false)
           }
-        }).catch(err => Alert.alert(err.message))
+        }).catch(err => {
+          setspinner(false)
+          Alert.alert(err.message)})
     })
   }
   return (
@@ -214,7 +259,7 @@ const CreateObservation = props => {
         <View style={styles.btncontainer}>
           <TouchableOpacity style={styles.back} onPress={() => { props.navigation.navigate("Observation") }}>
             <Image style={styles.icon} source={require("../../assets/icons/backnav.png")} />
-            <Text style={styles.backtxt}>Back</Text>
+            <Text style={styles.backtxt}>Back to list</Text>
           </TouchableOpacity>
 
         </View>

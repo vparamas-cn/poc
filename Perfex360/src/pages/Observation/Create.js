@@ -110,8 +110,8 @@ const CreateObservation = props => {
       formData.append('user_id', props.user.user_id)
       formData.append('observation_id', o_id)
       formData.append('description', description)
-      let response = await axios.post(api.fileupload, formData, { headers: { 'x-auth-token': props.user.token ,
-      'Content-Type': 'multipart/form-data',} })
+      var config = { method: 'post', url: api.fileupload, headers: { 'x-access-token': props.user.token, 'Content-Type': 'multipart/form-data'},data : formData};
+      let response = await axios(config)
       return response;
              
   }
@@ -139,7 +139,8 @@ const CreateObservation = props => {
       if (showalert) return Alert.alert("Description and Image Required");
       setspinner(true)
         value.observation_date = moment(value.observation_date).format("YYYY-MM-DD hh:mm:ss")
-        axios.post(api.createobservation,value , { headers: { 'x-auth-token': props.user.token } })
+        var config = { method: 'post', url: api.createobservation, headers: { 'x-access-token': props.user.token, 'Content-Type': 'application/json'},data : value};
+        axios(config)
         .then(async(res) => {
           let resultdata = res;
           if(resultdata.data.status === 200){
@@ -158,7 +159,8 @@ const CreateObservation = props => {
               section_id: undefined,
               area_id: undefined,
               observation: undefined,
-              remarks: undefined
+              remarks: undefined,
+              user_id:props.user.user_id
             })
             setDataImg({
               images1:undefined,
@@ -170,12 +172,16 @@ const CreateObservation = props => {
               user_id:props.user.user_id
             })
             setspinner(false)
+            props.navigation.navigate("Observation")
             Alert.alert("Successfully Updated!!!")
           }
           else{
             Alert.alert("Failed")
+            setspinner(false)
           }
-        }).catch(err => Alert.alert(err.message))
+        }).catch(err => {
+          setspinner(false)
+          Alert.alert(err.message)})
       })
   }
   const DateChange = (e,date) => {
