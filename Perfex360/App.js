@@ -35,7 +35,8 @@ const App = props => {
   </Stack.Navigator>
   return (
     <NavigationContainer>
-        {user.isAuthenticated? <Dashboard />:<Auth/>}
+        {/* {user.isAuthenticated? <Dashboard />:<Auth/>} */}
+        <Dashboard />
     </NavigationContainer>
   )
 

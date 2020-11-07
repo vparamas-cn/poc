@@ -1,5 +1,5 @@
 import React,{useState, useEffect} from 'react'
-import { StyleSheet, View, Text, TouchableOpacity, Image, TextInput ,Alert} from "react-native";
+import { StyleSheet, View, Text, TouchableOpacity, Image, TextInput ,Alert , Platform} from "react-native";
 import Container from "../../components/Container"
 import { Theme,wp,hp,fontsize,Bg } from '../../lib/constants';
 import DateTimePicker from '@react-native-community/datetimepicker'
@@ -12,6 +12,8 @@ import Joi from 'react-native-joi'
 import { connect } from 'react-redux'
 import { fetcharea, fetchsection } from '../../redux/actions/observation.actions'
 import { api } from '../../lib/constants';
+import Spinner from 'react-native-loading-spinner-overlay';
+
 var FormData = require('form-data');
 
 
@@ -25,6 +27,7 @@ const options = {
 
 const CreateObservation = props => {
   const [add, setaddd] = useState(0);
+  const [spinner, setspinner] = useState(false)
   const [data, setData] = useState({
     employee_name: props.user.user_name,
     observation_date: new Date(),
@@ -62,7 +65,6 @@ const CreateObservation = props => {
   const imagePicker = (type) => {
     ImagePicker.showImagePicker(options, response => {
       console.log("Response = ", response);
-
       if (response.didCancel) {
         console.log("User cancelled image picker");
       } else if (response.error) {
@@ -98,7 +100,7 @@ const CreateObservation = props => {
   };
   const uploadimage = async(image,description,o_id)=>{
       const formData = new FormData()
-      image.name =image.uri.substring(url.lastIndexOf('/')+1);
+      image.name =image.uri.substring(image.uri.lastIndexOf('/')+1);
       formData.append('file', image)
       formData.append('user_id', props.user.user_id)
       formData.append('observation_id', o_id)
@@ -113,19 +115,21 @@ const CreateObservation = props => {
     
     Joi.validate(data, schema, (err, value) => {
       if (err) return Alert.alert(err.message)
+      setspinner(true)
         value.observation_date = moment(value.observation_date).format("YYYY-MM-DD hh:mm:ss")
         axios.post(api.createobservation,value , { headers: { 'x-auth-token': props.user.token } })
         .then(async(res) => {
-        if(res.data.status === 200){
-            if(dataimage.image1){
-              let res= await uploadimage(dataimage.image1, dataimage.description1,res.data.response);
-            }
-            if(dataimage.image2){
-              let res= await uploadimage(dataimage.image2, dataimage.description2,res.data.response);
-            }
-            if(dataimage.image3){
-              let res= await uploadimage(dataimage.image3, dataimage.description3,res.data.response);
-            }
+          let resultdata = res;
+          if(resultdata.data.status === 200){
+              if(dataimage.image1){
+                let res= await uploadimage(dataimage.image1, dataimage.description1,resultdata.data.response);
+              }
+              if(dataimage.image2){
+                let res= await uploadimage(dataimage.image2, dataimage.description2,resultdata.data.response);
+              }
+              if(dataimage.image3){
+                let res= await uploadimage(dataimage.image3, dataimage.description3,resultdata.data.response);
+              }
             setData({
               employee_name: props.user.user_name,
               observation_date: new Date(),
@@ -143,12 +147,19 @@ const CreateObservation = props => {
               description3:undefined,
               user_id:props.user.user_id
             })
+            setspinner(false)
+            Alert.alert("Successfully Updated!!!")
           }
           else{
             Alert.alert("Failed")
           }
         }).catch(err => Alert.alert(err.message))
       })
+  }
+  const DateChange = (e,date) => {
+    setShowDatePicker(false) 
+     console.log(moment(date).format('ll'))
+     setData({ ...data, observation_date: date })
   }
   return (
     <Container title={"Create Observation"}>
@@ -166,24 +177,54 @@ const CreateObservation = props => {
                     value={data.employee_name}
                     onChangeText={val => setData({ ...data, employee_name: val })} />
                 </View>
-                <View style={styles.sectionbox}>
-                    <Text style={styles.sectiontitle}>Observation Date</Text>
-                      <View style={{position:"relative"}}>
-                      <DateTimePicker
-                      style={styles.input}
-                            value={data.observation_date}
-                            mode='date'
-                            display='default'
-                            textColor={Theme}
-                            onChange={(e, date) => {
-                                setShowDatePicker(false)
-                                date && setData({ ...data, observation_date: date })
-                               
-                            }}
-                        />
-                        <Image style={styles.inputbtn} source={require("../../assets/icons/calendar.png")} />
-                        </View>
-                </View>
+                {Platform.OS === 'ios' ? 
+                    <View style={styles.sectionbox}>
+                        <Text style={styles.sectiontitle}>Observation Date</Text>
+                          <View style={{position:"relative"}}>
+                          <DateTimePicker
+                          style={styles.input}
+                                value={data.observation_date}
+                                mode='date'
+                                display='default'
+                                textColor={Theme}
+                                onChange={(e, date) => {
+                                    setShowDatePicker(false)
+                                    date && setData({ ...data, observation_date: date })
+                                  
+                                }}
+                            />
+                            <Image style={styles.inputbtn} source={require("../../assets/icons/calendar.png")} />
+                            </View>
+                    </View>
+                  :
+                    <View style={styles.sectionbox}>
+                        <Text style={styles.sectiontitle}>Observation Date</Text>
+                          <View style={{position:"relative",}}>
+                            <TouchableOpacity onPress={()=>{setShowDatePicker(true)}}>
+                              <TextInput style={styles.datepickerinput}
+                                editable={false}
+                                underlineColorAndroid="transparent"
+                                placeholder="Date"
+                                placeholderTextColor={Theme}
+                                autoCapitalize="none"
+                                value={moment(data.observation_date).format('ll')}
+                                />
+                            </TouchableOpacity>
+                            {showDatePicker && <DateTimePicker
+                              style={styles.input}
+                                    value={data.observation_date}
+                                    mode='date'
+                                    display='default'
+                                    textColor={Theme}
+                                    onChange={(e, date) => {
+                                      DateChange(e,date)
+                                    }}
+                                /> 
+                              }
+                              <Image style={styles.inputbtn} source={require("../../assets/icons/calendar.png")} />
+                            </View>
+                    </View>
+                }
                 {props.observation && props.observation.sectionlist.length>0?<View style={styles.sectionbox}>
                     <Text style={styles.sectiontitle}>Section</Text>
                     <View style={styles.input}>
@@ -252,7 +293,7 @@ const CreateObservation = props => {
                 
                 {add>=1?<View style={styles.sectionbox}>
                     <Text style={styles.sectiontitle}>Image</Text>
-                    {!dataimage.image2?<TouchableOpacity style={styles.addimage} onPress={()=>{imagePicker("image1")}}>
+                    {!dataimage.image2?<TouchableOpacity style={styles.addimage} onPress={()=>{imagePicker("image2")}}>
                         <Text>Click to</Text><Text>add image</Text>
                     </TouchableOpacity>:
                     <View style={styles.imageholder}><View style={styles.imagecontainer}><Image style={styles.images} source={{uri:dataimage.image2.uri}}></Image></View><TouchableOpacity style={styles.remove} onPress={()=>{setDataImg({ ...dataimage, image2: undefined })}}><Text style={styles.removetxt}>Remove</Text></TouchableOpacity></View>}
@@ -269,7 +310,7 @@ const CreateObservation = props => {
                 </View>:null}
                 {add>=2?<View style={styles.sectionbox}>
                     <Text style={styles.sectiontitle}>Image</Text>
-                    {!dataimage.image3?<TouchableOpacity style={styles.addimage} onPress={()=>{imagePicker("image1")}}>
+                    {!dataimage.image3?<TouchableOpacity style={styles.addimage} onPress={()=>{imagePicker("image3")}}>
                         <Text>Click to</Text><Text>add image</Text>
                     </TouchableOpacity>:
                     <View style={styles.imageholder}><View style={styles.imagecontainer}><Image style={styles.images} source={{uri:dataimage.image3.uri}}></Image></View><TouchableOpacity style={styles.remove} onPress={()=>{setDataImg({ ...dataimage, image3: undefined })}}><Text style={styles.removetxt}>Remove</Text></TouchableOpacity></View>}
@@ -294,6 +335,11 @@ const CreateObservation = props => {
             <Button onPress={()=>submit()} buttonText="Submit" loading={false} />
             </View>
         </View>
+        <Spinner
+          visible={spinner}
+          textContent={'Loading...'}
+          textStyle={styles.spinnerTextStyle}
+        />
       </View>
     </Container>
   )
@@ -301,6 +347,9 @@ const CreateObservation = props => {
 const styles = StyleSheet.create({
   container:{
     flex:1,justifyContent:"flex-start",backgroundColor:Bg
+  },
+  spinnerTextStyle: {
+    color: '#FFF'
   },
   background:{
     backgroundColor:Theme,
@@ -312,8 +361,8 @@ const styles = StyleSheet.create({
   },
   inputbtn: {
     position: "absolute",
-    top: hp("2.5%"),
-    right: 12
+    top: hp("2.7%"),
+    right: 17
   },
   imageholder:{
       flexDirection:"row"
@@ -373,6 +422,20 @@ const styles = StyleSheet.create({
     color:"#424242"
   },
   input: {
+    width:"100%",
+    marginBottom:hp('3%'),
+    height: hp("7%"),
+    borderColor: Theme,
+    borderWidth: 1,
+    borderRadius:hp("1%"),
+    paddingLeft: wp("3%"),
+    fontSize: fontsize(1.9),
+    color:"#000000",
+    justifyContent:"center",
+    backgroundColor:"#fff",
+    position: "relative"
+  },
+  datepickerinput:{
     width:"100%",
     marginBottom:hp('3%'),
     height: hp("7%"),
@@ -455,7 +518,8 @@ const styles = StyleSheet.create({
       marginHorizontal:wp("5%"),
       justifyContent:"center",
       alignItems:"center",
-      marginTop:10
+      marginTop:10,
+      marginBottom:50,
   },
   datetxt: {
     fontSize: fontsize(1.9),

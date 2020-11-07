@@ -15,7 +15,7 @@ const Container = ({ children, styles, title, logout}) => {
         <View style={[css.container, styles, { marginTop: 0, backgroundColor: Bg }]}
             onPress={Keyboard.dismiss}>
             <StatusBar barStyle={"dark-content"}
-                backgroundColor="white"
+                backgroundColor={Theme}
                 translucent={false}>
             </StatusBar>
             {title ?<View style={css.backgroundhome}>
