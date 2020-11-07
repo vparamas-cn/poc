@@ -1,4 +1,4 @@
-import React,{useState, useEffect} from 'react'
+import React,{useState, useEffect, useRef} from 'react'
 import { StyleSheet, View, Text, TouchableOpacity, Image, TextInput ,Alert , Platform} from "react-native";
 import Container from "../../components/Container"
 import { Theme,wp,hp,fontsize,Bg } from '../../lib/constants';
@@ -13,7 +13,7 @@ import { connect } from 'react-redux'
 import { fetcharea, fetchsection } from '../../redux/actions/observation.actions'
 import { api } from '../../lib/constants';
 import Spinner from 'react-native-loading-spinner-overlay';
-
+import ImageViewer from '../../components/ImageViewer';
 var FormData = require('form-data');
 
 
@@ -29,6 +29,7 @@ const CreateObservation = props => {
   const [add, setaddd] = useState(0);
   const [spinner, setspinner] = useState(false);
   const [imgloader, setimgloader] = useState(false);
+  const [imgviewerurl, setimgviewerurl] = useState(undefined);
   const [data, setData] = useState({
     employee_name: props.user.user_name,
     observation_date: new Date(),
@@ -307,7 +308,9 @@ const CreateObservation = props => {
                     :
                       <View style={styles.imageholder}>
                         <View style={styles.imagecontainer}>
+                        <TouchableOpacity  onPress={()=>{setimgviewerurl(dataimage.image1.uri)}}>
                           <Image style={styles.images} source={imgloader == "img1" ? require("../../assets/icons/imgloader.png") : {uri:dataimage.image1.uri}} onLoad={() => setimgloader(false)}></Image>
+                        </TouchableOpacity>
                         </View>
                         <TouchableOpacity style={styles.remove} onPress={()=>{setDataImg({ ...dataimage, image1: undefined })}}>
                           <Text style={styles.removetxt}>Remove</Text>
@@ -335,7 +338,9 @@ const CreateObservation = props => {
                     :
                       <View style={styles.imageholder}>
                         <View style={styles.imagecontainer}>
+                        <TouchableOpacity  onPress={()=>{setimgviewerurl(dataimage.image2.uri)}}>
                           <Image style={styles.images} source={imgloader == "img2" ? require("../../assets/icons/imgloader.png") : {uri:dataimage.image2.uri}} onLoad={() => setimgloader(false)}></Image>
+                        </TouchableOpacity>
                         </View>
                         <TouchableOpacity style={styles.remove} onPress={()=>{setDataImg({ ...dataimage, image2: undefined })}}>
                           <Text style={styles.removetxt}>Remove</Text>
@@ -358,7 +363,7 @@ const CreateObservation = props => {
                     {!dataimage.image3?<TouchableOpacity style={styles.addimage} onPress={()=>{imagePicker("image3")}}>
                         <Text>Click to</Text><Text>add image</Text>
                     </TouchableOpacity>:
-                    <View style={styles.imageholder}><View style={styles.imagecontainer}><Image style={styles.images} source={imgloader == "img3" ? require("../../assets/icons/imgloader.png") : {uri:dataimage.image3.uri}} onLoad={() => setimgloader(false)}></Image></View><TouchableOpacity style={styles.remove} onPress={()=>{setDataImg({ ...dataimage, image3: undefined })}}><Text style={styles.removetxt}>Remove</Text></TouchableOpacity></View>}
+                    <View style={styles.imageholder}><View style={styles.imagecontainer}><TouchableOpacity  onPress={()=>{setimgviewerurl(dataimage.image3.uri)}}><Image style={styles.images} source={imgloader == "img3" ? require("../../assets/icons/imgloader.png") : {uri:dataimage.image3.uri}} onLoad={() => setimgloader(false)}></Image></TouchableOpacity></View><TouchableOpacity style={styles.remove} onPress={()=>{setDataImg({ ...dataimage, image3: undefined })}}><Text style={styles.removetxt}>Remove</Text></TouchableOpacity></View>}
                     <Text style={styles.sectiontitle}>Description</Text>
                     <TextInput style={Platform.OS === 'ios' ? styles.textarea : styles.textareaandroid}
                     underlineColorAndroid="transparent"
@@ -375,7 +380,6 @@ const CreateObservation = props => {
                 style={{ height: 35, width: 35,  resizeMode: "contain", marginRight:5 }} /><Text style={styles.addtxt}>Add Image</Text></TouchableOpacity>
                 </View>:null}
             </View>
-           
             <View style={styles.button}>
             <Button onPress={()=>submit()} buttonText="Submit" loading={false} />
             </View>
@@ -386,6 +390,8 @@ const CreateObservation = props => {
           textStyle={styles.spinnerTextStyle}
         />
       </View>
+      {imgviewerurl && <ImageViewer Url={imgviewerurl} close={() =>setimgviewerurl(undefined) }/>}
+      
     </Container>
   )
 };
