@@ -1,10 +1,11 @@
 import React, { useState, useEffect,Fragment } from 'react'
-import { StyleSheet, View, Text, TouchableOpacity, Image, TextInput, Alert , Platform, Picker} from "react-native";
+import { StyleSheet, View, Text, TouchableOpacity, Image, TextInput, Alert , Platform} from "react-native";
 import Container from "../../components/Container"
 import { Theme, wp, hp, fontsize, Bg } from '../../lib/constants';
 import DateTimePicker from '@react-native-community/datetimepicker'
 import Button from "../../components/Button"
-import RNPickerSelect from 'react-native-picker-select';
+//import RNPickerSelect from 'react-native-picker-select';
+import { Picker } from '@react-native-community/picker';
 import ImagePicker from "react-native-image-picker";
 import moment from 'moment'
 import axios from 'axios'
@@ -21,7 +22,8 @@ const options = {
   title: "Select Image",
   storageOptions: {
     skipBackup: true,
-    path: "images"
+    path: "images",
+    privateDirectory: true
   }
 };
 
@@ -278,7 +280,6 @@ const CreateObservation = props => {
             <View style={styles.sectionbox}>
               <Text style={styles.sectiontitle}>Employee Name</Text>
               <TextInput style={styles.input}
-                editable={false}
                 underlineColorAndroid="transparent"
                 placeholder="Employee Name"
                 placeholderTextColor={Theme}
@@ -323,6 +324,7 @@ const CreateObservation = props => {
                               style={styles.input}
                                     value={data.observation_date}
                                     mode='date'
+                                    minimumDate={new Date()}
                                     display='default'
                                     textColor={Theme}
                                     onChange={(e, date) => {
@@ -338,24 +340,42 @@ const CreateObservation = props => {
             {props.observation && props.observation.sectionlist.length > 0 ? <View style={styles.sectionbox}>
               <Text style={styles.sectiontitle}>Section</Text>
               <View style={styles.input}>
-                <RNPickerSelect
+                {/* <RNPickerSelect
                   onValueChange={(value) => setData({ ...data, section_id: value })}
                   items={
                     props.observation.sectionlist.map((e, i) => { return { label: e.section_name, value: e.section_id } })}
                   value={data.section_id}
-                />
+                /> */}
+                 <Picker
+                    selectedValue={data.section_id}
+                    onValueChange={val => setData({ ...data, section_id: val })}
+                  >
+                    {props.observation.sectionlist.map(data => (
+                      <Picker.Item key={data.section_id} value={data.section_id} label={data.section_name} />
+                    ))}
+
+                  </Picker>
                 <Image style={styles.inputbtn} source={require("../../assets/icons/dropdown.png")} />
               </View>
             </View> : null}
             {props.observation && props.observation.arealist.length > 0 ? <View style={styles.sectionbox}>
               <Text style={styles.sectiontitle}>Area</Text>
               <View style={styles.input}>
-                <RNPickerSelect
+                {/* <RNPickerSelect
                   onValueChange={(value) => setData({ ...data, area_id: value })}
                   items={
                     props.observation.arealist.map((e, i) => { return { label: e.area_name, value: e.area_id } })}
                   value={data.area_id}
-                />
+                /> */}
+                 <Picker
+                    selectedValue={data.area_id}
+                    onValueChange={val => setData({ ...data, area_id: val })}
+                  >
+                    {props.observation.arealist.map(data => (
+                      <Picker.Item key={data.area_id} value={data.section_id} label={data.area_name} />
+                    ))}
+
+                  </Picker>
                 <Image style={styles.inputbtn} source={require("../../assets/icons/dropdown.png")} />
               </View>
             </View> : null}

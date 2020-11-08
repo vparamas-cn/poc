@@ -118,7 +118,8 @@ const styles = StyleSheet.create({
   list: {
     flex: 1,
     marginTop: hp("1%"),
-    padding: 20
+    padding: 20,
+    marginBottom:70
   },
   view: {
     width: wp("20%"),
