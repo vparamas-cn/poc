@@ -54,13 +54,37 @@ const CreateObservation = props => {
   })
 
   const schema = Joi.object({
-    employee_name: Joi.string().required(),
-    observation_date: Joi.date().required(),
-    section_id: Joi.number().required(),
-    area_id: Joi.number().required(),
-    observation: Joi.string().required(),
-    remarks: Joi.string().required(),
-    user_id: Joi.number().required()
+    employee_name: Joi.string().required().error(() => {
+      return {
+        message: 'Employee name is required.',
+      };
+    }),
+    observation_date: Joi.date().required().error(() => {
+      return {
+        message: 'Observation Date is required.',
+      };
+    }),
+    section_id: Joi.number().required().error(() => {
+      return {
+        message: 'Section is required.',
+      };
+    }),
+    area_id: Joi.number().required().error(() => {
+      return {
+        message: 'Area is required.',
+      };
+    }),
+    observation: Joi.string().required().error(() => {
+      return {
+        message: 'Observation is required.',
+      };
+    }),
+    remarks: Joi.string().required().error(() => {
+      return {
+        message: 'Remarks is required.',
+      };
+    }),
+    user_id: Joi.number()
   })
   useEffect(() => {
     NetInfo.fetch().then(state => {
