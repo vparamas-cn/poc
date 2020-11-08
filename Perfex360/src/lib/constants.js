@@ -1,7 +1,7 @@
 
 import {widthPercentageToDP as widthp, heightPercentageToDP as heightp} from 'react-native-responsive-screen';
 import { RFPercentage } from "react-native-responsive-fontsize";
-export const baseUrl = 'http://localhost:3080/api'
+export const baseUrl = 'http://52.66.249.22:3000/api'
 export const Theme="#0c588b";
 export const LightTheme="#0c588b"
 export const Bg="#F8F7F5"

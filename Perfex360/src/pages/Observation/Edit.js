@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react'
-import { StyleSheet, View, Text, TouchableOpacity, Image, TextInput, Alert , Platform} from "react-native";
+import React, { useState, useEffect,Fragment } from 'react'
+import { StyleSheet, View, Text, TouchableOpacity, Image, TextInput, Alert , Platform, Picker} from "react-native";
 import Container from "../../components/Container"
 import { Theme, wp, hp, fontsize, Bg } from '../../lib/constants';
 import DateTimePicker from '@react-native-community/datetimepicker'
@@ -14,6 +14,7 @@ import { fetcharea, fetchsection } from '../../redux/actions/observation.actions
 import { api } from '../../lib/constants';
 import Spinner from 'react-native-loading-spinner-overlay';
 var FormData = require('form-data');
+import ImageViewer from '../../components/ImageViewer';
 
 
 const options = {
@@ -26,23 +27,12 @@ const options = {
 
 const CreateObservation = props => {
   const dataval = props.route.params;
-  // const dataval =[
-  //   {
-  //     employee_name: "Test",
-  //     observation_date: new Date(),
-  //     section_id: undefined,
-  //     area_id: undefined,
-  //     observation: undefined,
-  //     remarks: undefined,
-  //     user_id: props.user.user_id,
-  //     observation_id: undefined,
-  //     photo_url:null,
-  //     description:undefined
-  //   }
-  // ]
+  const [imgviewerurl, setimgviewerurl] = useState(undefined);
   const [add, setaddd] = useState(0);
   const [spinner, setspinner] = useState(false)
-  const [observation_id, setObservation] = useState(undefined)
+  const [observation_id, setObservation] = useState(undefined);
+  const [imgloader, setimgloader] = useState(false);
+
   const [data, setData] = useState({
     employee_name: props.user.user_name,
     observation_date: new Date(),
@@ -101,11 +91,11 @@ const CreateObservation = props => {
       })
 
       setDataImg({
-        image1: dataval[0].photo_url !== null ? {uri:"http://localhost:3080/"+dataval[0].photo_url} : undefined,
+        image1: dataval[0].photo_url !== null ? {uri:"http://52.66.249.22:3000/"+dataval[0].photo_url} : undefined,
         description1: dataval[0].description !== null ? dataval[0].description : undefined,
-        image2: dataval[1] && dataval[1].photo_url !== null ? {uri:"http://localhost:3080/"+dataval[1].photo_url} : undefined,
+        image2: dataval[1] && dataval[1].photo_url !== null ? {uri:"http://52.66.249.22:3000/"+dataval[1].photo_url} : undefined,
         description2: dataval[1] && dataval[1].description !== null ? dataval[1].description : undefined,
-        image3: dataval[2] && dataval[2].photo_url !== null ? {uri:"http://localhost:3080/"+dataval[2].photo_url }: undefined,
+        image3: dataval[2] && dataval[2].photo_url !== null ? {uri:"http://52.66.249.22:3000/"+dataval[2].photo_url }: undefined,
         description3: dataval[2] && dataval[2].description !== null ? dataval[2].description : undefined,
         user_id: props.user.user_id
       })
@@ -127,7 +117,8 @@ const CreateObservation = props => {
         console.log("User tapped custom button: ", response.customButton);
       } else {
         const source = { uri: response.uri };
-        if (type == "image1")
+        if (type == "image1"){
+          setimgloader("img1");
           setDataImg({
             ...dataimage, image1: {
               name: response.fileName,
@@ -137,7 +128,9 @@ const CreateObservation = props => {
               },
               id1:dataval[0].observation_file_id
           })
-        else if (type == "image2")
+        }
+        else if (type == "image2"){
+          setimgloader("img2");
           setDataImg({
             ...dataimage, image2: {
               name: response.fileName,
@@ -147,7 +140,9 @@ const CreateObservation = props => {
               },
               id2:dataval[1] ? dataval[1].observation_file_id:undefined
             })
-          else if (type == "image3")
+          }
+          else if (type == "image3"){
+            setimgloader("img3");
             setDataImg({
               ...dataimage, image3: {
                 name: response.fileName,
@@ -157,7 +152,7 @@ const CreateObservation = props => {
                 },
                 id3:dataval[2] ? dataval[2].observation_file_id:undefined
             })
-
+          }
       }
     });
   };
@@ -237,8 +232,14 @@ const CreateObservation = props => {
                   }
               }
               setspinner(false)
-              props.navigation.navigate("Observation");
-              Alert.alert("Successfully Updated!!!")
+              Alert.alert(
+                'Info',
+                'Successfully Updated!!!',
+                [
+                  { text: 'OK', onPress: () => props.navigation.navigate("Observation") }
+                ],
+                { cancelable: false }
+              );
             }
             catch(er){
               setspinner(false)
@@ -253,8 +254,17 @@ const CreateObservation = props => {
           Alert.alert(err.message)})
     })
   }
+  const DateChange = (e,date) => {
+    setShowDatePicker(false) 
+     console.log(moment(date).format('ll'))
+     setData({ ...data, observation_date: date })
+  }
+  const ProgressImage = () => {
+    console.log("ProgressImage")
+  }
   return (
-    <Container title={observation_id ? "Edit Observation" : "Create Observation"}>
+    <Fragment>
+    <Container title={"Edit Observation" }>
       <View style={styles.container}>
         <View style={styles.btncontainer}>
           <TouchableOpacity style={styles.back} onPress={() => { props.navigation.navigate("Observation") }}>
@@ -351,7 +361,7 @@ const CreateObservation = props => {
             </View> : null}
             <View style={styles.sectionbox}>
               <Text style={styles.sectiontitle}>Observation</Text>
-              <TextInput style={styles.textarea}
+              <TextInput style={Platform.OS === 'ios' ? styles.textarea : styles.textareaandroid}
                 underlineColorAndroid="transparent"
                 placeholder="Observation"
                 placeholderTextColor={Theme}
@@ -363,7 +373,7 @@ const CreateObservation = props => {
             </View>
             <View style={styles.sectionbox}>
               <Text style={styles.sectiontitle}>Remarks</Text>
-              <TextInput style={styles.textarea}
+              <TextInput style={Platform.OS === 'ios' ? styles.textarea : styles.textareaandroid}
                 underlineColorAndroid="transparent"
                 placeholder="Remarks"
                 placeholderTextColor={Theme}
@@ -378,9 +388,10 @@ const CreateObservation = props => {
               {!dataimage.image1 ? <TouchableOpacity style={styles.addimage} onPress={() => { imagePicker("image1") }}>
                 <Text>Click to</Text><Text>add image</Text>
               </TouchableOpacity> :
-                <View style={styles.imageholder}><View style={styles.imagecontainer}><Image style={styles.images} source={{ uri: dataimage.image1.uri }}></Image></View><TouchableOpacity style={styles.remove} onPress={() => { setDataImg({ ...dataimage, image1: undefined }) }}><Text style={styles.removetxt}>Remove</Text></TouchableOpacity></View>}
+                <View style={styles.imageholder}><View style={styles.imagecontainer}>
+                  <TouchableOpacity  onPress={()=>{setimgviewerurl(dataimage.image1.uri)}}><Image style={imgloader == "img1" ?styles.imagesloader:styles.images} source={imgloader == "img1" ? require("../../assets/icons/imgloader.png") : {uri:dataimage.image1.uri}} onLoad={() => setimgloader(false)}></Image></TouchableOpacity></View><TouchableOpacity style={styles.remove} onPress={() => { setDataImg({ ...dataimage, image1: undefined }) }}><Text style={styles.removetxt}>Remove</Text></TouchableOpacity></View>}
               <Text style={styles.sectiontitle}>Description</Text>
-              <TextInput style={styles.textarea}
+              <TextInput style={Platform.OS === 'ios' ? styles.textarea : styles.textareaandroid}
                 underlineColorAndroid="transparent"
                 placeholder="Description"
                 placeholderTextColor={Theme}
@@ -390,15 +401,15 @@ const CreateObservation = props => {
                 multiline={true}
                 onChangeText={val => setDataImg({ ...dataimage, description1: val })} />
             </View>
-
             <View style={styles.sectionbox}>
               <Text style={styles.sectiontitle}>Image</Text>
               {!dataimage.image2 ? <TouchableOpacity style={styles.addimage} onPress={() => { imagePicker("image2") }}>
                 <Text>Click to</Text><Text>add image</Text>
               </TouchableOpacity> :
-                <View style={styles.imageholder}><View style={styles.imagecontainer}><Image style={styles.images} source={{ uri: dataimage.image2.uri }}></Image></View><TouchableOpacity style={styles.remove} onPress={() => { setDataImg({ ...dataimage, image2: undefined }) }}><Text style={styles.removetxt}>Remove</Text></TouchableOpacity></View>}
+                <View style={styles.imageholder}><View style={styles.imagecontainer}>
+                  <TouchableOpacity  onPress={()=>{setimgviewerurl(dataimage.image2.uri)}}><Image style={imgloader == "img2" ?styles.imagesloader:styles.images} source={imgloader == "img2" ? require("../../assets/icons/imgloader.png") : {uri:dataimage.image2.uri}} onLoad={() => setimgloader(false)}></Image></TouchableOpacity></View><TouchableOpacity style={styles.remove} onPress={() => { setDataImg({ ...dataimage, image2: undefined }) }}><Text style={styles.removetxt}>Remove</Text></TouchableOpacity></View>}
               <Text style={styles.sectiontitle}>Description</Text>
-              <TextInput style={styles.textarea}
+              <TextInput style={Platform.OS === 'ios' ? styles.textarea : styles.textareaandroid}
                 underlineColorAndroid="transparent"
                 placeholder="Description"
                 placeholderTextColor={Theme}
@@ -413,9 +424,10 @@ const CreateObservation = props => {
               {!dataimage.image3 ? <TouchableOpacity style={styles.addimage} onPress={() => { imagePicker("image3") }}>
                 <Text>Click to</Text><Text>add image</Text>
               </TouchableOpacity> :
-                <View style={styles.imageholder}><View style={styles.imagecontainer}><Image style={styles.images} source={{ uri: dataimage.image3.uri }}></Image></View><TouchableOpacity style={styles.remove} onPress={() => { setDataImg({ ...dataimage, image3: undefined }) }}><Text style={styles.removetxt}>Remove</Text></TouchableOpacity></View>}
+                <View style={styles.imageholder}><View style={styles.imagecontainer}>
+                  <TouchableOpacity  onPress={()=>{setimgviewerurl(dataimage.image3.uri)}}><Image style={imgloader == "img3" ?styles.imagesloader:styles.images} source={imgloader == "img3" ? require("../../assets/icons/imgloader.png") : {uri:dataimage.image3.uri}} onLoad={() => setimgloader(false)}></Image></TouchableOpacity></View><TouchableOpacity style={styles.remove} onPress={() => { setDataImg({ ...dataimage, image3: undefined }) }}><Text style={styles.removetxt}>Remove</Text></TouchableOpacity></View>}
               <Text style={styles.sectiontitle}>Description</Text>
-              <TextInput style={styles.textarea}
+              <TextInput style={Platform.OS === 'ios' ? styles.textarea : styles.textareaandroid}
                 underlineColorAndroid="transparent"
                 placeholder="Description"
                 placeholderTextColor={Theme}
@@ -425,11 +437,13 @@ const CreateObservation = props => {
                 multiline={true}
                 onChangeText={val => setDataImg({ ...dataimage, description3: val })} />
             </View>
+            
+           
 
           </View>
 
           <View style={styles.button}>
-            <Button onPress={() => submit(observation_id)} buttonText={observation_id ? "Update" : "Submit"} loading={false} />
+            <Button onPress={() => submit(observation_id)} buttonText={"Update"} loading={false} />
           </View>
 
         </View>
@@ -439,7 +453,10 @@ const CreateObservation = props => {
           textStyle={styles.spinnerTextStyle}
         />
       </View>
+      
     </Container>
+    {imgviewerurl && <ImageViewer Url={imgviewerurl} close={() =>setimgviewerurl(undefined) }/>}
+    </Fragment>
   )
 };
 const styles = StyleSheet.create({
@@ -567,6 +584,20 @@ const styles = StyleSheet.create({
   panel: {
     backgroundColor: Bg,
     paddingBottom: hp("2.5%"),
+  },
+  textareaandroid: {
+    width: "100%",
+    marginBottom: hp('3%'),
+    height: hp("10%"),
+    borderColor: Theme,
+    borderWidth: 1,
+    borderRadius: hp("1%"),
+    paddingLeft: wp("3%"),
+    fontSize: fontsize(1.9),
+    color: "#000000",
+    justifyContent: "center",
+    backgroundColor: "#ffffff",
+    textAlignVertical: "top",
   },
   panelbox: {
     backgroundColor: "#fff",

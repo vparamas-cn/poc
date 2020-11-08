@@ -8,10 +8,10 @@ import observationReducer from './observation.reducers'
 const persistConfig = {
     key: 'root',
     storage: AsyncStorage,
-    whitelist: ['user'],
-    transforms: [
-        createWhitelistFilter('user', ['token'])
-    ],
+    //whitelist: ['user'],
+    // transforms: [
+    //     createWhitelistFilter('user', ['token'])
+    // ],
     stateReconciler: autoMergeLevel2
 }
 

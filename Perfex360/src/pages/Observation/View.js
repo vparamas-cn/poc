@@ -1,14 +1,14 @@
-import React, { useCallback } from 'react'
+import React, { useState ,Fragment } from 'react'
 import { StyleSheet, View, Text, TouchableOpacity, Image, ScrollView} from "react-native";
 import Container from "../../components/Container"
 import { Theme,wp,hp,fontsize,Bg } from '../../lib/constants';
 import Button from "../../components/Button"
 import { useSelector } from 'react-redux'
-
+import ImageViewer from '../../components/ImageViewer';
 
 const ViewObservation = props => {
   const observation = useSelector(state => state.observation);
-
+  const [imgviewerurl, setimgviewerurl] = useState(undefined);
   const data = props.route.params;
   const edit =()=>{
 
@@ -42,6 +42,7 @@ const ViewObservation = props => {
   };
   
   return (
+    <Fragment>
     <Container title={"Observation Detail"}>
       <View style={styles.container}>
         <View style={styles.background}>
@@ -69,10 +70,10 @@ const ViewObservation = props => {
             </View>
             {data && data.map((rec,i)=>{
               return(
-                <View style={styles.imageblock} key={i}>
-                  <Image style={styles.images} source={{uri:`http://localhost:3080/${rec.photo_url}`}}></Image>
+                <TouchableOpacity style={styles.imageblock} key={i}  onPress={()=>{setimgviewerurl(`http://52.66.249.22:3000/${rec.photo_url}`)}}>
+                  <Image style={styles.images} source={{uri:`http://52.66.249.22:3000/${rec.photo_url}`}}></Image>
                   <Text style={styles.details}>{rec.description}</Text>
-              </View>
+              </TouchableOpacity>
               )
             })}
             
@@ -89,7 +90,10 @@ const ViewObservation = props => {
             </View>
         </View>
       </View>
+      
     </Container>
+    {imgviewerurl && <ImageViewer Url={imgviewerurl} close={() =>setimgviewerurl(undefined) }/>}
+    </Fragment>
   )
 };
 const styles = StyleSheet.create({
@@ -167,7 +171,8 @@ const styles = StyleSheet.create({
     fontSize:fontsize(6),
     fontWeight:"bold",
     color:"#474747",
-    marginBottom:10
+    marginBottom:10,
+   
   },
   datealign:{
     flexDirection:"row",
@@ -181,7 +186,8 @@ const styles = StyleSheet.create({
 },
   background:{
     width:wp("86%"),
-    margin:wp("7%")
+    margin:wp("7%"),
+    marginBottom:60
   },
   images:{
     width:wp("86%"),
